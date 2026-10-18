@@ -13,4 +13,4 @@
 - **14 languages** — auto-detected from your phone, or set manually
 - **Private by design** — your relay credentials never leave your phone
 
-**Setup (one time):** create a free secret gist, generate a GitHub token, paste both into the app. Done in under five minutes. See `g2muse-opsætning.md`.
+**Setup (one time):** create a free secret gist, generate a GitHub token, paste both into the app. Done in under five minutes. See `g2muse-setup.md`.
