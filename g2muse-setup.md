@@ -35,7 +35,7 @@ a new one. Never put passwords or ID numbers in relay messages.
 
 ## Step 3: Install the app
 
-1. Open the file **g2muse-2.0.1.ehpk** on your phone
+1. Open the file **g2muse-2.1.1.ehpk** on your phone
 2. Choose to open it with the **Even Realities** app — it sideloads the
    app. Help: [Even Hub documentation](https://hub.evenrealities.com/docs)
 3. Find **G2Muse** in the Even app on your phone
@@ -66,11 +66,19 @@ Each message shows the **sender with date/time**, e.g.
 
 ### Navigation (R1 ring)
 
-- **Swipe up/down**: previous/next message
+- **Swipe up/down**: previous/next message (newest is no. 1)
 - **Tap**: show the **full message** (tap again to go back)
 - **Double-tap**: go **back**
 - **Hold** (long press): **voice reply** — hold while you talk, release
   to send (0.6 sec – 2 min, OGG/Opus)
+
+### Idle screen
+
+Navigation is circular with an **empty screen** between the last and
+first message. The idle screen shows only the **unread count** (top
+left) and the **clock** (top right) — no frame. When a new message
+arrives while the idle screen is shown, it pops up briefly (8 sec.),
+then the screen goes empty again.
 
 ### OS menu
 
@@ -80,12 +88,15 @@ Each message shows the **sender with date/time**, e.g.
 
 ### Read/unread
 
-The main screen shows e.g. "3 unread of 12" or "All read".
+Each message header shows e.g. "3 unread" or "All read". The idle
+screen shows only the unread count (nothing when all are read).
 
 ### Voice replies
 
 Hold, talk, release. Your Muse transcribes the audio locally and
-replies to what you said. **Safety rule:** before your Muse acts on a
+replies to what you said. The transcription is posted to the relay as
+a message from you, so the glasses show the full conversation: your
+words first, then the reply. **Safety rule:** before your Muse acts on a
 voice message by deleting or overwriting anything, it will describe
 what it heard and ask you to confirm with **JA!** (or reject with
 **NEJ!**). Small things (questions, lookups) need no confirmation.
@@ -121,7 +132,7 @@ polling, transcription, and the side chat.
 >   at github.com/settings/tokens.
 > - Before you DELETE anything or OVERWRITE existing content based on
 >   a voice transcription, describe what you heard and get my
->   confirmation with JA! (or rejection with NEJ!). Transcription can
+>   confirmation with YES! (or rejection with NO!). Transcription can
 >   be misheard. Small things (questions, lookups, simple replies)
 >   need no confirmation. This rule applies ONLY to voice, not text.
 >
@@ -146,12 +157,16 @@ polling, transcription, and the side chat.
 >   libopus (via ctypes), then transcribe the resulting WAV.
 > - When you reply to a voice message, briefly quote the transcription
 >   so I can see what you heard.
+> - Post the transcription to the relay as a message from me
+>   (`--from you`), BEFORE your reply — so my glasses show my
+>   words as my message, then your reply underneath.
 >
 > **4. Polling / watch:**
 > - Set up a scheduled watch (every ~3 minutes) that polls the gist
 >   for new `type: voice-note` notifications from me (track the
 >   watermark `last_relay_voice_note` so each is handled once).
-> - For each new voice note: download, transcribe, reply in Danish,
+> - For each new voice note: download, transcribe, post what you heard
+>   to the relay, reply in my language,
 >   post the reply to the relay (so it appears on my glasses), and
 >   update the watermark atomically.
 > - Stay silent when there is nothing new.
