@@ -1,14 +1,19 @@
-# G2Muse — Installation & Setup (v2.0)
+# G2Muse — Installation & Setup (v2.3)
 
 G2Muse shows messages on your Even Realities G2 glasses — and you can
 reply by voice, right from the glasses.
 
-**How it works (v2.0):** Everything goes through a **message relay**
+**How it works (v2.3):** Everything goes through a **message relay**
 (a secret GitHub Gist). Your Muse posts text messages to the relay;
 the app polls the relay and shows them on your glasses. When you reply
 by voice (hold-to-talk on the glasses), the app uploads the audio to
 the relay, your Muse downloads and transcribes it locally, and replies
 to what you said. No Telegram, no bots.
+
+On your Muse's side, a **lightweight polling script** (no AI agent
+involved) checks the relay every ~30 seconds and only wakes an agent
+when you have actually spoken — so idle checks cost no tokens, and
+replies typically land within about a minute of your voice message.
 
 You need: a phone with the [Even Realities app](https://hub.evenrealities.com/docs),
 your G2 glasses paired with the phone, and a (free) GitHub account.
@@ -33,14 +38,7 @@ only — never paste it in a chat. If it ever leaks or you lose your
 phone, revoke it immediately at github.com/settings/tokens and create
 a new one. Never put passwords or ID numbers in relay messages.
 
-## Step 3: Install the app
-
-1. Open the file **g2muse-2.1.1.ehpk** on your phone
-2. Choose to open it with the **Even Realities** app — it sideloads the
-   app. Help: [Even Hub documentation](https://hub.evenrealities.com/docs)
-3. Find **G2Muse** in the Even app on your phone
-
-## Step 4: Connect the app to the relay
+## Step 3: Connect the app to the relay
 
 1. Open **G2Muse** in the Even app on your phone
 2. Paste the **gist ID or gist URL** (from Step 1) and the **token**
@@ -50,13 +48,6 @@ a new one. Never put passwords or ID numbers in relay messages.
    - **Auto-refresh** interval (default 60 sec)
    - **Language** — automatic from your phone's system language, or pick
      manually (14 languages)
-
-**Upgrading from v1.x?** Your old setup used a Telegram bot token —
-v2.0 needs the gist + GitHub token instead. Just enter the new values
-once; the old config is ignored.
-
-The first time you record a voice reply, the phone asks for microphone
-permission for the glasses.
 
 ## Using it on the glasses
 
@@ -68,7 +59,9 @@ Each message shows the **sender with date/time**, e.g.
 
 - **Swipe up/down**: previous/next message (newest is no. 1)
 - **Tap**: show the **full message** (tap again to go back)
-- **Double-tap**: go **back**
+- **Double-tap**: go **back** — from a message it jumps straight to the
+  **idle screen** (handy in long lists: no scrolling all the way);
+  double-tap again **on the idle screen** for the exit prompt
 - **Hold** (long press): **voice reply** — hold while you talk, release
   to send (0.6 sec – 2 min, OGG/Opus)
 
@@ -98,12 +91,11 @@ replies to what you said. The transcription is posted to the relay as
 a message from you, so the glasses show the full conversation: your
 words first, then the reply. **Safety rule:** before your Muse acts on a
 voice message by deleting or overwriting anything, it will describe
-what it heard and ask you to confirm with **JA!** (or reject with
-**NEJ!**). Small things (questions, lookups) need no confirmation.
+what it heard and ask you to confirm with **YES!** (or reject with
+**NO!**). Small things (questions, lookups) need no confirmation.
 
 ## Good to know
 
-- The app shows the latest ~30 messages from the relay
 - 14 languages: Danish, Swedish, Norwegian, Greenlandic (Kalaallisut),
   Icelandic, Faroese, English, German, French, Russian, Ukrainian,
   Japanese, Chinese, Arabic
@@ -120,7 +112,7 @@ polling, transcription, and the side chat.
 
 ---
 
-> I want to use the G2Muse app (v2.0) with my Even Realities G2
+> I want to use the G2Muse app (v2.3) with my Even Realities G2
 > glasses. Please set up the complete pipeline for me:
 >
 > **1. Security rules (standing — think security into everything):**
@@ -132,7 +124,7 @@ polling, transcription, and the side chat.
 >   at github.com/settings/tokens.
 > - Before you DELETE anything or OVERWRITE existing content based on
 >   a voice transcription, describe what you heard and get my
->   confirmation with YES! (or rejection with NO!). Transcription can
+>   confirmation with JA! (or rejection with NEJ!). Transcription can
 >   be misheard. Small things (questions, lookups, simple replies)
 >   need no confirmation. This rule applies ONLY to voice, not text.
 >
@@ -155,29 +147,51 @@ polling, transcription, and the side chat.
 >   hand-muxed OGG/Opus is rejected by FFmpeg/PyAV — decode it by
 >   manually demuxing the OGG pages and decoding Opus packets with
 >   libopus (via ctypes), then transcribe the resulting WAV.
-> - When you reply to a voice message, briefly quote the transcription
->   so I can see what you heard.
 > - Post the transcription to the relay as a message from me
->   (`--from you`), BEFORE your reply — so my glasses show my
->   words as my message, then your reply underneath.
+>   (`--from You`), BEFORE your reply — so my glasses show my
+>   words as my message, then your reply underneath. The transcription
+>   IS the receipt that you heard me: do NOT post a separate
+>   "heard you" message or paraphrase of my words — just answer
+>   what I said.
 >
-> **4. Polling / watch:**
-> - Set up a scheduled watch (every ~3 minutes) that polls the gist
->   for new `type: voice-note` notifications from me (track the
->   watermark `last_relay_voice_note` so each is handled once).
-> - For each new voice note: download, transcribe, post what you heard
->   to the relay, reply in my language,
->   post the reply to the relay (so it appears on my glasses), and
->   update the watermark atomically.
-> - Stay silent when there is nothing new.
+> **4. Polling / watch (token-cheap):**
+> - Do NOT poll with a scheduled agent: an agent run every few minutes
+>   burns tokens even when nothing happened. Instead set up a
+>   lightweight event hook: a plain script (no LLM) that polls the
+>   gist every ~30 seconds and only wakes an agent when a new
+>   `type: voice-note` from me appears (track the watermark
+>   `last_relay_voice_note` so each note is handled once).
+> - The script must never see my real token: it fetches the gist
+>   through the credential-surrogate mechanism (the runtime swaps
+>   the surrogate for the real token on the way out; api.github.com
+>   is the only allowed host). Nothing new = the script stays silent
+>   and costs nothing.
+> - **Claim lock (learned the hard way — one voice note got two
+>   replies):** the watermark only advances when the woken agent has
+>   FINISHED, and transcription can take longer than the poll
+>   interval, so the next poll would see the same note as "new" and
+>   wake a second agent. When the script wakes an agent for a note,
+>   it must record a claim (the note's ts + the current time, in a
+>   small state file) and refuse to wake again for that note while
+>   the claim is fresh (~10 minutes). If the claim expires without
+>   the watermark advancing, the agent is presumed dead and a new
+>   wake is allowed.
+> - The woken agent handles each new voice note (oldest first):
+>   FIRST re-check the relay — if a transcription or a reply for
+>   the note already exists, just advance the watermark and stop,
+>   posting nothing (dedupe). Otherwise: download and transcribe
+>   locally, post the transcription to the relay as my message,
+>   reply to the content in my language, post the reply to the
+>   relay as Muse, and update the watermark atomically.
 >
 > **5. Side chat & delivery:**
 > - Create a dedicated side chat for the glasses (e.g. "Even Realities
 >   G2"). Everything you write as a reply in that chat must ALSO be
 >   posted to the relay (same text) so it lands on my glasses.
-> - When I write to you from the side chat, deliver your reply in
->   both places: the side chat and the relay.
+> - When I write to you from the side chat, relay this to the glasses,
+>   and deliver your reply in both places: the side chat and the relay.
 >
 > Confirm each step as you complete it, and tell me when the whole
 > pipeline is verified end-to-end (text both ways + one voice message
 > transcribed correctly).
+
