@@ -20,6 +20,6 @@
 
 **Info & Instructions:**
 - **About the app:** [`g2muse-about.md`](g2muse-about.md)
-- **Setup guide (English):** [`g2muse-setup.md`](g2muse-setup.md) — create a secret gist, generate a token, install the app
+- **Setup guide (English):** [`g2muse-setup.md`](g2muse-setup.md) — create a secret gist, generate a token
 
 Current version: **2.3.0** (`com.bob.g2muse`).
