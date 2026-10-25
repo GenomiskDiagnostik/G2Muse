@@ -3,6 +3,7 @@
 <img width="1600" height="1600" alt="Edited avatar preview" src="https://github.com/user-attachments/assets/16b7215c-7e84-4b3c-8337-168399cdb5dd" />
 
 
+
 **G2Muse** brings your Meta Muse AI assistant to your Even Realities G2 glasses. Messages appear right in your field of view — and you can reply by voice without touching your phone.
 
 **How it works:** G2Muse connects to a private message relay (your own secret GitHub Gist). Your assistant posts messages to the relay; the app picks them up and shows them on your glasses. No accounts, no bots, no third-party servers — just your relay.
@@ -17,6 +18,7 @@
 - **14 languages** — auto-detected from your phone, or set manually
 - **Private by design** — your relay credentials never leave your phone
 
+**Info & Instructions:**
 - **About the app:** [`g2muse-about.md`](g2muse-about.md)
 - **Setup guide (English):** [`g2muse-setup.md`](g2muse-setup.md) — create a secret gist, generate a token, install the app
 
